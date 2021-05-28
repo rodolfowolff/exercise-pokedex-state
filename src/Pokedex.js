@@ -1,29 +1,37 @@
 import React from 'react';
 import Pokemon from './Pokemon';
+import './Pokedex.css';
 
 class Pokedex extends React.Component {
     constructor (props) {
         super(props);
 
-        const pokemons = this.props.pokemons;
-
         this.state = {
             indexPokemon: 0,
-            pokemons: pokemons,
+            pokeTypes: props.pokemons.reduce((acc, current) =>
+                acc.includes(current.type) ? acc : acc.concat(current.type),
+                [ 'All' ]),
+            currentPokeList: props.pokemons,
         };
 
-        this.nextPokemon = this.nextPokemon.bind(this);
+        this.changePokemon = this.changePokemon.bind(this);
+        this.filterTypes = this.filterTypes.bind(this);
     }
 
-    nextPokemon() {
-        this.setState((backIndex, _props) => ({
-            indexPokemon: backIndex.indexPokemon + 1,
-        }));
-        if (this.state.indexPokemon >= this.state.pokemons.length - 1) {
-            this.setState({
-                indexPokemon: 0,
-            });
-        }
+    changePokemon() {
+        this.setState(prev => this.state.indexPokemon < this.state.currentPokeList.length - 1
+            ? { indexPokemon: prev.indexPokemon + 1 }
+            : { indexPokemon: 0 }
+        );
+    }
+
+    filterTypes(chosenType) {
+        const { pokemons } = this.props;
+        this.setState({ indexPokemon: 0 });
+        this.setState(() => chosenType === 'All'
+            ? { currentPokeList: pokemons }
+            : { currentPokeList: pokemons.filter(poke => poke.type === chosenType) }
+        );
     }
 
     render() {
@@ -32,16 +40,25 @@ class Pokedex extends React.Component {
             <div className="pokedex">
 
                 <div className="pokemonCard">
-                    {
-                        <Pokemon key={this.state.pokemons[ this.state.indexPokemon ].id}
-                            pokemon={this.state.pokemons[ this.state.indexPokemon ]}
-                        />
+                    {this.state.currentPokeList.map((pokemon) => {
+                        return <Pokemon key={pokemon.id} pokemon={pokemon} />;
+                    })[ this.state.indexPokemon ]}
+                </div>
+
+                <div className="proximo">
+                    <button className="bt bt-next" onClick={this.changePokemon}>Next Pokemon</button>
+                </div>
+
+                <div className="pokeType">
+                    {this.state.pokeTypes.map(pokeType =>
+                        <button className="bt"
+                            key={pokeType}
+                            onClick={() => this.filterTypes(pokeType)}>
+                            {pokeType}
+                        </button>)
                     }
                 </div>
 
-                <div className="nextPokemon">
-                    <button className="bt bt-next" onClick={this.nextPokemon}>Próximo Pokemon</button>
-                </div>
 
             </div>
         );
